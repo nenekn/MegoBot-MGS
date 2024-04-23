@@ -1,21 +1,37 @@
-let linkRegex = /chat.whatsapp.com\/([0-9A-Za-z]{20,24})( [0-9]{1,3})?/i
 
-let handler = async (m, { conn, text, isOwner }) => {
-    let [_, code, expired] = text.match(linkRegex) || []
-    if (!code) throw 'الرابط غير صالح'
-    let res = await conn.groupAcceptInvite(code)
-    expired = Math.floor(Math.min(999, Math.max(1, isOwner ? isNumber(expired) ? parseInt(expired) : 0 : 3)))
-    m.reply(`تم الانضمام للمجموعة بنجاح يكبير☝🏿 ${res}${expired ? ` خلال ${expired} يوم` : ''}\n\nتابع صاحب البوت في حسابه\ninstagram.com/m0hamed.78`)
-    let chats = global.db.data.chats[res]
-    if (!chats) chats = global.db.data.chats[res] = {}
-    if (expired) chats.expired = +new Date() + expired * 1000 * 60 * 60 * 24
-}
-handler.help = ['join']
-handler.tags = ['owner']
 
-handler.command = /^join$/i
-handler.rowner = true
+const linkRegex = /chat.whatsapp.com\/([0-9A-Za-z]{20,24})/i;
+let enviando;
+const handler = async (m, {conn, text, isMods, isOwner, isPrems}) => {
+  const datas = global
+  const idioma = datas.db.data.users[m.sender].language
+  const _translate = JSON.parse(fs.readFileSync(`./language/${idioma}.json`))
+  const tradutor = _translate.plugins.owner_join
 
-export default handler
-
-const isNumber = (x) => (x = parseInt(x), typeof x === 'number' && !isNaN(x))
+ if (enviando) return;
+     enviando = true 
+  try {
+    const link = text //(m.quoted ? m.quoted.text ? m.quoted.text : text : text) || text;
+    if (!link || !link.match(linkRegex)) throw tradutor.texto1;
+    const [_, code] = link.match(linkRegex) || [];
+    if ( isPrems || isMods || isOwner || m.fromMe) {
+      const res = await conn.groupAcceptInvite(code);
+      await conn.sendMessage(m.chat, {text: tradutor.texto2}, {quoted: m})
+      enviando = false 
+    } else {
+      conn.sendMessage(m.chat, {text: tradutor.texto3}, {quoted: m});
+      const data = global.owner.filter(([id]) => id)[0];
+      const dataArray = Array.isArray(data) ? data : [data];
+      for (const entry of dataArray) await conn.sendMessage(entry + '@s.whatsapp.net', {text: tradutor.texto4 + '@' + m.sender.split('@')[0] + '\n*—◉ Link del grupo:* ' + link, mentions: [m.sender], contextInfo: {forwardingScore: 9999999, isForwarded: true, mentionedJid: [m.sender], "externalAdReply": {"showAdAttribution": true, "containsAutoReply": true, "renderLargerThumbnail": true, "title": global.titulowm2, "containsAutoReply": true, "mediaType": 1, "thumbnail": imagen6, "mediaUrl": `${link}`, "sourceUrl": `${link}`}}}, {quoted: m});
+      enviando = false 
+    }
+  } catch {
+    enviando = false 
+    throw tradutor.texto5;
+  }
+};
+handler.help = ['join [chat.whatsapp.com]'];
+handler.tags = ['premium'];
+handler.command = /^انضم|ادخل$/i;
+handler.private = true;
+export default handler;
