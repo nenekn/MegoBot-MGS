@@ -1,16 +1,20 @@
-let handler = async (m, { conn, text, usedPrefix, command }) => {
-  if (!text) throw `اذا كنت تواجه مشكلة ما في البوت أو أن أحد الأوامر لا تعمل معك فاكتب  الامر متبوع بالمشكلة التي تعاني منها في البوت وسيتم تلبة طلبكم من طرف صاحب البوت سوف اعطيك مثال اكتب هكذا \n\n*.report* أرجوك ميزة تحميل الفيديوات لا تعمل معي هل من حل ? `
-  if (text.length < 10) throw `يجب ان تكون الرسالة فيها اكثر من اربع كلمات `
-  if (text.length > 1000) throw `الحد الادنى هو 1000 حرف اختر ما تريد قوله !`
-  let teks = `*${command.toUpperCase()}!*\n\nfrom : *@${m.sender.split`@`[0]}*\n\nmessage : ${text}\n`
-  conn.reply(global.nomorown + '@s.whatsapp.net', m.quoted ? teks + m.quoted.text : teks, null, {
-      contextInfo: {
-          mentionedJid: [m.sender]
-      }
-  })
-  m.reply(`_يتم إرسال الرسالة إلى صاحب البوت، ...  بمجرد ان يقرأ صاحب البوت هذه الرسالة سيتم الرد عليكم لا تقلقوا ._\n*انا كانا رفيقتك♥*`)
-}
-handler.help = ['report']
-handler.tags = ['infobot']
-handler.command = /^(report)$/i
-export default handler
+
+
+const handler = async (m, {conn, text, usedPrefix, command}) => {
+  const datas = global
+  const idioma = datas.db.data.users[m.sender].language
+  const _translate = JSON.parse(fs.readFileSync(`./language/${idioma}.json`))
+  const tradutor = _translate.plugins.owner_reporte
+
+  if (!text) throw `${tradutor.texto1[0]}\n*${usedPrefix + command} ${tradutor.texto1[1]} ${usedPrefix}play ${tradutor.texto1[2]}`;
+  if (text.length < 10) throw tradutor.texto2;
+  if (text.length > 1000) throw tradutor.texto3;
+  const teks = `${tradutor.texto4[0]} wa.me/${m.sender.split`@`[0]}\n${tradutor.texto4[1]} ${text}\n*┴*`;
+  conn.reply('5219992095479@s.whatsapp.net', m.quoted ? teks + m.quoted.text : teks, null, {contextInfo: {mentionedJid: [m.sender]}});
+  conn.reply('584125778026@s.whatsapp.net', m.quoted ? teks + m.quoted.text : teks, null, {contextInfo: {mentionedJid: [m.sender]}});
+  m.reply(tradutor.texto5);
+};
+handler.help = ['reporte', 'request'].map((v) => v + ' <teks>');
+handler.tags = ['info'];
+handler.command = /^(report|طلب|ريبورت|ابلاغ|خطأ|report-owner|reportes)$/i;
+export default handler;
